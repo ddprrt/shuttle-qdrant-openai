@@ -94,13 +94,14 @@ struct AppState {
 async fn axum(
     #[shuttle_static_folder::StaticFolder(folder = "static")] static_folder: PathBuf,
     #[shuttle_static_folder::StaticFolder(folder = "docs")] docs_folder: PathBuf,
+    #[shuttle_static_folder::StaticFolder(folder = ".")] prefix: PathBuf,
     #[shuttle_secrets::Secrets] secrets: shuttle_secrets::SecretStore,
 ) -> shuttle_axum::ShuttleAxum {
     let embedding = false;
     open_ai::setup(&secrets)?;
     let mut vector_db = VectorDB::new(&secrets)?;
 
-    let files = contents::load_files_from_dir(docs_folder, ".mdx")?;
+    let files = contents::load_files_from_dir(docs_folder, ".mdx", prefix)?;
 
     if embedding {
         vector_db.reset_collection().await?;

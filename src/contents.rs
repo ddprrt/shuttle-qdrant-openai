@@ -88,17 +88,17 @@ impl File {
 }
 
 // Load files from directory by ending
-pub fn load_files_from_dir(dir: PathBuf, ending: &str) -> Result<Vec<File>> {
+pub fn load_files_from_dir(dir: PathBuf, ending: &str, prefix: PathBuf) -> Result<Vec<File>> {
     let mut files = Vec::new();
     for entry in fs::read_dir(dir)? {
         let path = entry?.path();
+        let prefix = prefix.clone();
         if path.is_dir() {
-            let mut sub_files = load_files_from_dir(path, ending)?;
+            let mut sub_files = load_files_from_dir(path, ending, prefix)?;
             files.append(&mut sub_files);
         } else {
             let path_clone = path.clone();
-            let path_clone = Path::new(path_clone.as_os_str())
-                .strip_prefix("/Users/stefan.baumgartner/Projects/Rust/qdrant-shuttle")?;
+            let path_clone = Path::new(path_clone.as_os_str()).strip_prefix(prefix)?;
             let path_str = path_clone.to_str().ok_or(NotAvailableError {})?;
             if path.is_file() && path_str.ends_with(ending) {
                 // Load file contents into string
