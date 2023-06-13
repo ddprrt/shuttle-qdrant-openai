@@ -56,13 +56,17 @@ fn error_stream() -> impl Stream<Item = String> {
     futures::stream::once(async move { "Error with your prompt".to_string() })
 }
 
-async fn get_contents(prompt: &str, app_state: &AppState) -> anyhow::Result<String> {
+async fn get_contents(
+    prompt: &str,
+    app_state: &AppState,
+) -> anyhow::Result<Receiver<ChatCompletionDelta>> {
     let embedding = open_ai::embed_sentence(prompt).await?;
     let result = app_state.vector_db.search(embedding).await?;
-    app_state
+    let contents = app_state
         .files
         .get_contents(&result)
-        .ok_or(PromptError {}.into())
+        .ok_or(PromptError {})?;
+    open_ai::chat_stream(prompt, contents.as_str()).await
 }
 
 #[debug_handler]
@@ -71,13 +75,10 @@ async fn prompt(
     Json(prompt): Json<Prompt>,
 ) -> impl IntoResponse {
     let prompt = prompt.prompt;
-    let contents = get_contents(&prompt, &app_state).await;
-    if let Ok(contents) = contents {
-        let chat_completion = open_ai::chat_stream(prompt.as_str(), contents.as_str()).await;
+    let chat_completion = get_contents(&prompt, &app_state).await;
 
-        if let Ok(chat_completion) = chat_completion {
-            return axum_streams::StreamBodyAs::text(chat_completion_stream(chat_completion));
-        }
+    if let Ok(chat_completion) = chat_completion {
+        return axum_streams::StreamBodyAs::text(chat_completion_stream(chat_completion));
     }
 
     axum_streams::StreamBodyAs::text(error_stream())

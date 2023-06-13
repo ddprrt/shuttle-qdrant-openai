@@ -47,7 +47,7 @@ pub async fn chat_stream(prompt: &str, contents: &str) -> Result<Conversation> {
         .map_err(|_| EmbeddingError {}.into())
 }
 
-pub async fn chat(prompt: &str, contents: &str) -> Result<ChatCompletion> {
+pub async fn _chat(prompt: &str, contents: &str) -> Result<ChatCompletion> {
     let content = format!("{}\n Context: {}\n Be concise", prompt, contents);
 
     ChatCompletionBuilder::default()
