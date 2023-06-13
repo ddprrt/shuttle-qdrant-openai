@@ -1,5 +1,8 @@
 use anyhow::Result;
-use std::{fs, path::PathBuf};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+};
 
 #[derive(Debug)]
 struct NotAvailableError;
@@ -94,6 +97,8 @@ pub fn load_files_from_dir(dir: PathBuf, ending: &str) -> Result<Vec<File>> {
             files.append(&mut sub_files);
         } else {
             let path_clone = path.clone();
+            let path_clone = Path::new(path_clone.as_os_str())
+                .strip_prefix("/Users/stefan.baumgartner/Projects/Rust/qdrant-shuttle")?;
             let path_str = path_clone.to_str().ok_or(NotAvailableError {})?;
             if path.is_file() && path_str.ends_with(ending) {
                 // Load file contents into string

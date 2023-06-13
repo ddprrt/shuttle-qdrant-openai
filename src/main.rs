@@ -62,6 +62,7 @@ async fn get_contents(
 ) -> anyhow::Result<Receiver<ChatCompletionDelta>> {
     let embedding = open_ai::embed_sentence(prompt).await?;
     let result = app_state.vector_db.search(embedding).await?;
+    println!("Result: {:?}", result);
     let contents = app_state
         .files
         .get_contents(&result)
