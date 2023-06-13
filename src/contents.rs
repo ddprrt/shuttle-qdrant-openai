@@ -1,5 +1,5 @@
 use anyhow::Result;
-use std::fs;
+use std::{fs, path::PathBuf};
 
 #[derive(Debug)]
 struct NotAvailableError;
@@ -85,13 +85,12 @@ impl File {
 }
 
 // Load files from directory by ending
-pub fn load_files_from_dir(dir: &str, ending: &str) -> Result<Vec<File>> {
+pub fn load_files_from_dir(dir: PathBuf, ending: &str) -> Result<Vec<File>> {
     let mut files = Vec::new();
     for entry in fs::read_dir(dir)? {
         let path = entry?.path();
         if path.is_dir() {
-            let mut sub_files =
-                load_files_from_dir(path.to_str().ok_or(NotAvailableError {})?, ending)?;
+            let mut sub_files = load_files_from_dir(path, ending)?;
             files.append(&mut sub_files);
         } else {
             let path_clone = path.clone();
