@@ -4,15 +4,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-#[derive(Debug)]
-struct NotAvailableError;
-
-impl std::error::Error for NotAvailableError {}
-impl std::fmt::Display for NotAvailableError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "File 'not available' error")
-    }
-}
+use crate::errors::NotAvailableError;
 
 pub struct File {
     pub path: String,
@@ -87,27 +79,30 @@ impl File {
     }
 }
 
+fn ends_with(path: &Path, ending: &str) -> bool {
+    if let Some(path) = path.to_str() {
+        return path.ends_with(ending);
+    }
+    false
+}
+
 // Load files from directory by ending
-pub fn load_files_from_dir(dir: PathBuf, ending: &str, prefix: PathBuf) -> Result<Vec<File>> {
+pub fn load_files_from_dir(dir: PathBuf, ending: &str, prefix: &PathBuf) -> Result<Vec<File>> {
     let mut files = Vec::new();
     for entry in fs::read_dir(dir)? {
         let path = entry?.path();
-        let prefix = prefix.clone();
         if path.is_dir() {
             let mut sub_files = load_files_from_dir(path, ending, prefix)?;
             files.append(&mut sub_files);
-        } else {
-            let path_clone = path.clone();
-            let path_clone = Path::new(path_clone.as_os_str()).strip_prefix(prefix)?;
-            let path_str = path_clone.to_str().ok_or(NotAvailableError {})?;
-            if path.is_file() && path_str.ends_with(ending) {
-                // Load file contents into string
-                println!("Path: {:?}", path);
-                let contents = fs::read_to_string(path)?;
-                let mut file = File::new(path_str.to_string(), contents);
-                file.parse();
-                files.push(file);
-            }
+        } else if path.is_file() && ends_with(&path, ending) {
+            // Load file contents into string
+            let path = Path::new(&path).strip_prefix(prefix)?.to_owned();
+            println!("Path: {:?}", path);
+            let contents = fs::read_to_string(&path)?;
+            let key = path.to_str().ok_or(NotAvailableError {})?;
+            let mut file = File::new(key.to_string(), contents);
+            file.parse();
+            files.push(file);
         }
     }
     Ok(files)

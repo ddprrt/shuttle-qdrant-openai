@@ -25,7 +25,7 @@ mod vector;
 async fn embed_documentation(vector_db: &mut VectorDB, files: &Vec<File>) -> anyhow::Result<()> {
     for file in files {
         let embeddings = open_ai::embed_file(file).await?;
-
+        println!("Embedding: {:?}", file.path);
         for embedding in embeddings.data {
             vector_db.upsert_embedding(embedding, file).await?;
         }
@@ -97,15 +97,17 @@ async fn axum(
     #[shuttle_static_folder::StaticFolder(folder = ".")] prefix: PathBuf,
     #[shuttle_secrets::Secrets] secrets: shuttle_secrets::SecretStore,
 ) -> shuttle_axum::ShuttleAxum {
-    let embedding = false;
+    let embedding = true;
     open_ai::setup(&secrets)?;
     let mut vector_db = VectorDB::new(&secrets)?;
+    let files = contents::load_files_from_dir(docs_folder, ".mdx", &prefix)?;
 
-    let files = contents::load_files_from_dir(docs_folder, ".mdx", prefix)?;
+    println!("Setup done");
 
     if embedding {
         vector_db.reset_collection().await?;
         embed_documentation(&mut vector_db, &files).await?;
+        println!("Embedding done");
     }
 
     let app_state = AppState { files, vector_db };
