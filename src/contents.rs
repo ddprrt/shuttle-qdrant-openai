@@ -79,11 +79,17 @@ impl File {
     }
 }
 
-fn ends_with(path: &Path, ending: &str) -> bool {
-    if let Some(path) = path.to_str() {
-        return path.ends_with(ending);
+trait HasFileExt {
+    fn has_file_extension(&self, ending: &str) -> bool;
+}
+
+impl HasFileExt for Path {
+    fn has_file_extension(&self, ending: &str) -> bool {
+        if let Some(path) = self.to_str() {
+            return path.ends_with(ending);
+        }
+        false
     }
-    false
 }
 
 // Load files from directory by ending
@@ -94,8 +100,7 @@ pub fn load_files_from_dir(dir: PathBuf, ending: &str, prefix: &PathBuf) -> Resu
         if path.is_dir() {
             let mut sub_files = load_files_from_dir(path, ending, prefix)?;
             files.append(&mut sub_files);
-        } else if path.is_file() && ends_with(&path, ending) {
-            // Load file contents into string
+        } else if path.is_file() && path.has_file_extension(ending) {
             let path = Path::new(&path).strip_prefix(prefix)?.to_owned();
             println!("Path: {:?}", path);
             let contents = fs::read_to_string(&path)?;

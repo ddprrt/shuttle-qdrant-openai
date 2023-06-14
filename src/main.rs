@@ -97,7 +97,7 @@ async fn axum(
     #[shuttle_static_folder::StaticFolder(folder = ".")] prefix: PathBuf,
     #[shuttle_secrets::Secrets] secrets: shuttle_secrets::SecretStore,
 ) -> shuttle_axum::ShuttleAxum {
-    let embedding = true;
+    let embedding = false;
     open_ai::setup(&secrets)?;
     let mut vector_db = VectorDB::new(&secrets)?;
     let files = contents::load_files_from_dir(docs_folder, ".mdx", &prefix)?;
