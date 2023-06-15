@@ -20,7 +20,7 @@ cargo install cargo-shuttle
 OPENAI_API_KEY = "<ENTER YOUR KEY HERE>"
 QDRANT_TOKEN = "<ENTER YOUR KEY HERE>"
 QDRANT_URL = "<ENTER YOUR KEY HERE>"
-```
+```
 
 ## Running the example
 
