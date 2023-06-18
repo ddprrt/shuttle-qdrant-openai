@@ -31,3 +31,7 @@ cargo shuttle run
 ## More Info
 
 Check out our live stream at https://www.youtube.com/watch?v=YLWSeiDh2o0
+
+## Troubleshooting
+
+- Make sure you Qdrant URL ends with port `:6334`
